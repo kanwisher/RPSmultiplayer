@@ -14,55 +14,86 @@ document.addEventListener("DOMContentLoaded", () => {
   const db = firebase.database();
   const rootRef = db.ref();
   const playersRef = rootRef.child("/players");
-  // const game = rootRef.child("/game");
+  const joinButton= document.getElementById("joinButton");
+  const readyTwo = document.getElementById("readyTwo");
+  const nickName = document.getElementById("nickName");
 
   let playerCount = 0;
   let hasPlayerOne = false;
   let localPlayerRef;
+  let opponentRef;
   let localPlayerNum;
 
 
 
-  playersRef.on("value", snap => {
-    playerCount = snap.numChildren();
-    hasPlayerOne = snap.child("1").exists();
-    hasPlayerTwo = snap.child("2").exists();
 
-    if (playerCount < 2 && !localPlayerNum) { //game not full and local player unassigned
-      if (!hasPlayerOne) {
-        createPlayer(1);
-      } else {
-        createPlayer(2); //player one already exists, create local as player 2
-      } 
-    } else {
-      playGame();
-    }
-  });
-
-  function playGame() {
-    if (localPlayerNum) { // local computer is playing
-      
-    } else {
-      alert("Please wait for spot to become available");
-    }
-  }
+  joinButton.addEventListener("click", joinGame);
 
 
-
-  function createPlayer(num) {
-    localPlayerRef = playersRef.child(num);
-    localPlayerNum = num; // keep reference number of local player, use as flag for local player existing
-    localPlayerRef.onDisconnect().remove(); // if local closes browser, delete player
-    const nickName = prompt(`What's your nickname player ${num}?`)
+  function joinGame() {
     const localPlayerInfo = {
-      name: nickName,
+      name: nickName.value.trim(),
       pick: null,
       wins: 0,
       losses: 0,
       ties: 0
     };
-    localPlayerRef.set(localPlayerInfo)
+
+    playersRef.on("value", snap => {
+      playerCount = snap.numChildren();
+      hasPlayerOne = snap.child("1").exists();
+      hasPlayerTwo = snap.child("2").exists();
+
+      if (playerCount < 2 && !localPlayerNum) { //game not full and local player unassigned
+        if (!hasPlayerOne) {
+          createPlayer(1);
+          // unlockDOM(1);
+        } else {
+          createPlayer(2); //player one already exists, create local as player 2
+          // unlockDOM(2);
+        }
+      } else if(playerCount === 2 && !localPlayerNum) {
+        alert(`Please wait while the current game finishes`);
+      }
+    });
+    
+    function createPlayer(num) {
+      alert(`Welcome player ${num}`);
+      localPlayerRef = playersRef.child(num);
+      opponentRef = playersRef.child(num === 1 ? 2 : 1);
+      localPlayerNum = num; // keep reference number of local player, use as flag for local player existing
+      localPlayerRef.onDisconnect().remove(); // if local closes browser, delete player  
+      localPlayerRef.set(localPlayerInfo);
+      opponentRef.child("pick").on("value", snap => {
+        console.log(snap.val());
+      });
+    }
+
+    // function checkWin() {
+    //   if(localPlayersRef.child("pick").exists() && opponentRef.child("pick").exists()) {
+    //     console.log(localPlayersRef.child("pick").val());
+    //   }
+    // }
   }
+  // readyTwo.addEventListener("click", (e) => {
+  //   localPlayerRef.update({ status: "ready"})
+  // });
+
+
+
+  
+
+
+
+
+
+  // function unlockDOM(num) {
+  //   if (num === 1) {
+  //     readyOne.removeAttribute("disabled");
+  //   } else {
+  //     readyTwo.removeAttribute("disabled");
+  //   }
+  // }
 
 
 
