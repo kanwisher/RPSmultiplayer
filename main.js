@@ -23,12 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let hasPlayerOne = false;
   let localPlayerRef;
   let opponentRef;
+  let gameInProgress = false;
   let localPlayerNum;
 
   joinButton.addEventListener("click", joinGame);
 
 
-  function joinGame() {
+  function joinGame() { // handles player assignment and creation
     const localPlayerInfo = {
       name: nickName.value.trim() || "I'm an idiot",
       pick: null,
@@ -40,20 +41,15 @@ document.addEventListener("DOMContentLoaded", () => {
     playersRef.on("value", snap => {
       playerCount = snap.numChildren();
       hasPlayerOne = snap.child("1").exists();
-      hasPlayerTwo = snap.child("2").exists();
+      // hasPlayerTwo = snap.child("2").exists();
 
       if (playerCount < 2 && !localPlayerNum) { //game not full and local player unassigned
         if (!hasPlayerOne) {
           createPlayer(1);
-          // unlockDOM(1);
         } else {
           createPlayer(2); //player one already exists, create local as player 2
-          // unlockDOM(2);
         }
       } 
-      // else if(playerCount === 2) {
-      //   alert(`Please wait while the current game finishes`);
-      // }
     });
     
     function createPlayer(num) {
@@ -63,13 +59,37 @@ document.addEventListener("DOMContentLoaded", () => {
       localPlayerNum = num; // keep reference number of local player, use as flag for local player existing
       localPlayerRef.onDisconnect().remove(); // if local closes browser, delete player  
       localPlayerRef.set(localPlayerInfo);
-      gameListeners();
+      playGame();
     }
 
-    function gameListeners() {
-      playersRef.on("child_added", snap => {
-        console.log(snap.val());
+    function playGame() {
+      playersRef.on("value", snap => { // show hide game controls
+        debugger;
+        if (playerCount === 2 && !gameInProgress) { // new opponent is joining or an opponent is already here
+          gameInProgress = true;
+          // show controls for current player
+          // add opponent name
+          // show picking message for opponent
+
+        } else if (playerCount === 1) { // opponent has left the game
+          gameInProgress = false;
+          // reset client RPS selection
+          // hide controls for current player
+          // show waiting for player 2 for opponent
+          // clear opponent name
+        } else if (gameInProgress) {
+          // object array is snap.val();
+          // if opponent has picked but we have not, show picked banner for opponent
+          // if both have picked then choose winner, update wins and losses, reset picks and start routine over ('show picking for opponent);
+        }
       });
+
+
+
+
+
+      //player is only in charge of own data
+      //
 
       // opponentRef.child("pick").on("value", snap => {
       //   console.log(snap.val());
