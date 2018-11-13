@@ -10,9 +10,31 @@
 </head>
 <body>
     <input type="text" id="nickName"/>
-    <button id="joinButton">Play RPS</button>
-    <!-- <button id="readyOne" class="ready-button" disabled>Player One Ready</button>
-    <button id="readyTwo" class="ready-button" disabled>Player Two Ready</button> -->
+    <button id="joinButton" class="button">Play RPS</button>
+    <div class="arena hidden">
+        <div class="player-area">
+            <h3>Player 1</h3>
+            <div class="player-area__name"></div>
+            <div class="player-area__message">Waiting for player 1</div>
+            <div class="player-area__choices hidden">
+                <div class="button player-area__button">R</div>
+                <div class="button player-area__button">P</div>
+                <div class="button player-area__button">S</div>
+            </div>
+        </div>
+        <div class="player-area">
+            <h3>Player 2</h3>
+            <div class="player-area__name"></div>
+            <div class="player-area__message">Waiting for player 2</div>
+            <div class="player-area__choices hidden">
+                <div class="button player-area__button">R</div>
+                <div class="button player-area__button">P</div>
+                <div class="button player-area__button">S</div>
+            </div>
+        </div>
+    </div>  
+
+
 
     <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
     <script src="main.js"></script>

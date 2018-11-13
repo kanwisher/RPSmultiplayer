@@ -10,29 +10,27 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   firebase.initializeApp(config);
 
-
+// firebase
   const db = firebase.database();
   const rootRef = db.ref();
   const playersRef = rootRef.child("/players");
-  const joinButton= document.getElementById("joinButton");
-  const readyTwo = document.getElementById("readyTwo");
-  const nickName = document.getElementById("nickName");
 
+// DOM
+  const joinButton= document.getElementById("joinButton");
+  const nickName = document.getElementById("nickName");
+//
   let playerCount = 0;
   let hasPlayerOne = false;
   let localPlayerRef;
   let opponentRef;
   let localPlayerNum;
 
-
-
-
   joinButton.addEventListener("click", joinGame);
 
 
   function joinGame() {
     const localPlayerInfo = {
-      name: nickName.value.trim(),
+      name: nickName.value.trim() || "I'm an idiot",
       pick: null,
       wins: 0,
       losses: 0,
@@ -52,9 +50,10 @@ document.addEventListener("DOMContentLoaded", () => {
           createPlayer(2); //player one already exists, create local as player 2
           // unlockDOM(2);
         }
-      } else if(playerCount === 2 && !localPlayerNum) {
-        alert(`Please wait while the current game finishes`);
-      }
+      } 
+      // else if(playerCount === 2) {
+      //   alert(`Please wait while the current game finishes`);
+      // }
     });
     
     function createPlayer(num) {
@@ -64,9 +63,25 @@ document.addEventListener("DOMContentLoaded", () => {
       localPlayerNum = num; // keep reference number of local player, use as flag for local player existing
       localPlayerRef.onDisconnect().remove(); // if local closes browser, delete player  
       localPlayerRef.set(localPlayerInfo);
-      opponentRef.child("pick").on("value", snap => {
+      gameListeners();
+    }
+
+    function gameListeners() {
+      playersRef.on("child_added", snap => {
         console.log(snap.val());
       });
+
+      // opponentRef.child("pick").on("value", snap => {
+      //   console.log(snap.val());
+      // });
+
+      // opponentRef.child("pick").on("value", snap => {
+      //   console.log(snap.val());
+      // });
+
+      // opponentRef.child("pick").on("value", snap => {
+      //   console.log(snap.val());
+      // });
     }
 
     // function checkWin() {
