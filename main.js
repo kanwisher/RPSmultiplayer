@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // DOM
   const joinButton= document.getElementById("joinButton");
   const nickName = document.getElementById("nickName");
+  const choicesArea = document.querySelectorAll(".player-area__choices");
 //
   let playerCount = 0;
   let hasPlayerOne = false;
@@ -63,8 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function playGame() {
-      playersRef.on("value", snap => { // show hide game controls
-        debugger;
+      playersRef.on("value", snap => { // show hide game controls based on entering and leaving
         if (playerCount === 2 && !gameInProgress) { // new opponent is joining or an opponent is already here
           gameInProgress = true;
           // show controls for current player
@@ -77,39 +77,40 @@ document.addEventListener("DOMContentLoaded", () => {
           // hide controls for current player
           // show waiting for player 2 for opponent
           // clear opponent name
-        } else if (gameInProgress) {
+        } /* not needed??!?!? else if (gameInProgress) {
           // object array is snap.val();
           // if opponent has picked but we have not, show picked banner for opponent
           // if both have picked then choose winner, update wins and losses, reset picks and start routine over ('show picking for opponent);
         }
+        */
+        /* do below instead, if game is in progress? */
+
+        
+      });
+      choicesArea.forEach( el => {
+        el.addEventListener("click", e => {
+          if (e.target.matches(".player-area__button")) {
+            alert("clicked");
+              // on click add local variable of user pick, see if opponent has picked, if they have, run game logic, otherwise set that variable in local db ref
+          }
+        });
+      });     
+      opponentRef.child("pick").on("value", snap => { // best listener?
+        console.log(snap.val());
+        // on opponent value change, if we've already picked the run game logic, if we have not picked then store opponent pick in local
       });
 
-
-
-
-
-      //player is only in charge of own data
-      //
-
-      // opponentRef.child("pick").on("value", snap => {
-      //   console.log(snap.val());
-      // });
-
-      // opponentRef.child("pick").on("value", snap => {
-      //   console.log(snap.val());
-      // });
-
-      // opponentRef.child("pick").on("value", snap => {
-      //   console.log(snap.val());
-      // });
     }
 
-    // function checkWin() {
+  }
+
+
+
+      // function checkWin() {
     //   if(localPlayersRef.child("pick").exists() && opponentRef.child("pick").exists()) {
     //     console.log(localPlayersRef.child("pick").val());
     //   }
     // }
-  }
   // readyTwo.addEventListener("click", (e) => {
   //   localPlayerRef.update({ status: "ready"})
   // });
