@@ -18,33 +18,43 @@ document.addEventListener("DOMContentLoaded", () => {
 // DOM
   const joinButton= document.getElementById("joinButton");
   const nickName = document.getElementById("nickName");
+  const playerArea= document.querySelectorAll(".player-area");
   const choicesArea = document.querySelectorAll(".player-area__choices");
+  const joinArea = document.getElementById("join-area");
+  const arena = document.querySelector(".arena");
+  const playerOneArea = document.getElementById("player-one-area");
+  const playerTwoArea = document.getElementById("player-two-area");
+  const domRef = [playerOneArea, playerTwoArea];
 //
   let playerCount = 0;
   let hasPlayerOne = false;
-  let localPlayerRef;
+  let heroRef;
+  let heroDom;
   let opponentRef;
+  let opponentDom;
   let gameInProgress = false;
-  let localPlayerNum;
 
   joinButton.addEventListener("click", joinGame);
 
 
   function joinGame() { // handles player assignment and creation
-    const localPlayerInfo = {
-      name: nickName.value.trim() || "I'm an idiot",
+    const heroInfo = {
+      name: nickName.value.trim() || "Loser",
       pick: null,
       wins: 0,
       losses: 0,
       ties: 0
     };
 
+    joinArea.classList.add("hidden");
+    arena.classList.remove("hidden");
+
     playersRef.on("value", snap => {
       playerCount = snap.numChildren();
       hasPlayerOne = snap.child("1").exists();
       // hasPlayerTwo = snap.child("2").exists();
 
-      if (playerCount < 2 && !localPlayerNum) { //game not full and local player unassigned
+      if (playerCount < 2 && !heroRef) { //game not full and local player unassigned
         if (!hasPlayerOne) {
           createPlayer(1);
         } else {
@@ -54,38 +64,38 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     
     function createPlayer(num) {
-      alert(`Welcome player ${num}`);
-      localPlayerRef = playersRef.child(num);
-      opponentRef = playersRef.child(num === 1 ? 2 : 1);
-      localPlayerNum = num; // keep reference number of local player, use as flag for local player existing
-      localPlayerRef.onDisconnect().remove(); // if local closes browser, delete player  
-      localPlayerRef.set(localPlayerInfo);
+      // alert(`Welcome player ${num}`);
+      let opponentNum = num === 1 ? 2 : 1;
+      heroRef = playersRef.child(num);
+      heroDom = domRef[num - 1];
+      opponentRef = playersRef.child(opponentNum);
+      opponentDom = domRef[opponentNum - 1];
+      heroRef.onDisconnect().remove(); // if local closes browser, delete player      
+      heroRef.set(heroInfo);
+      updatePlayerInfo();
       playGame();
+    }
+
+    function updatePlayerInfo() {
+      heroDom.querySelector(".player-area__message").textContent = "";
+      heroDom.querySelector(".player-area__name").textContent = heroInfo.name;
     }
 
     function playGame() {
       playersRef.on("value", snap => { // show hide game controls based on entering and leaving
         if (playerCount === 2 && !gameInProgress) { // new opponent is joining or an opponent is already here
           gameInProgress = true;
+          heroDom.querySelector(".player-area__choices").classList.remove("hidden");
           // show controls for current player
           // add opponent name
           // show picking message for opponent
-
         } else if (playerCount === 1) { // opponent has left the game
           gameInProgress = false;
           // reset client RPS selection
           // hide controls for current player
           // show waiting for player 2 for opponent
           // clear opponent name
-        } /* not needed??!?!? else if (gameInProgress) {
-          // object array is snap.val();
-          // if opponent has picked but we have not, show picked banner for opponent
-          // if both have picked then choose winner, update wins and losses, reset picks and start routine over ('show picking for opponent);
         }
-        */
-        /* do below instead, if game is in progress? */
-
-        
       });
       choicesArea.forEach( el => {
         el.addEventListener("click", e => {
@@ -102,6 +112,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
+  }
+
+  function removeClassFromAll(list, className) {
+    list.forEach(item => item.classList.remove(className));
   }
 
 

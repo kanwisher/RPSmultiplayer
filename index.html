@@ -9,10 +9,12 @@
 
 </head>
 <body>
-    <input type="text" id="nickName"/>
-    <button id="joinButton" class="button">Play RPS</button>
+    <div class="panel" id="join-area">
+        <input type="text" id="nickName"/>
+        <button id="joinButton" class="button">Play RPS</button>
+    </div>
     <div class="arena hidden">
-        <div class="player-area">
+        <div class="player-area" id="player-one-area">
             <h3>Player 1</h3>
             <div class="player-area__name"></div>
             <div class="player-area__message">Waiting for player 1</div>
@@ -22,7 +24,7 @@
                 <div class="button player-area__button" value="S">S</div>
             </div>
         </div>
-        <div class="player-area">
+        <div class="player-area" id="player-two-area">
             <h3>Player 2</h3>
             <div class="player-area__name"></div>
             <div class="player-area__message">Waiting for player 2</div>

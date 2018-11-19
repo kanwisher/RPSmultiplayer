@@ -1,0 +1,8 @@
+
+.panel {
+    display: flex;
+}
+
+.hidden {
+    display: none;
+}
