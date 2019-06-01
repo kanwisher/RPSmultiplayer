@@ -16,77 +16,115 @@ document.addEventListener("DOMContentLoaded", () => {
   const playersRef = rootRef.child("/players");
 
 // DOM
-  const joinButton= document.getElementById("joinButton");
-  const nickName = document.getElementById("nickName");
-  const playerArea= document.querySelectorAll(".player-area");
-  const choicesArea = document.querySelectorAll(".player-area__choices");
+  const joinButton= document.getElementById("join-button");
+  const nickNameInput = document.getElementById("nickname-input");
+
+
   const joinArea = document.getElementById("join-area");
   const arena = document.querySelector(".arena");
-  const playerOneArea = document.getElementById("player-one-area");
-  const playerTwoArea = document.getElementById("player-two-area");
-  const domRef = [playerOneArea, playerTwoArea];
-//
-  let playerCount = 0;
-  let hasPlayerOne = false;
-  let heroRef;
-  let heroDom;
-  let opponentRef;
-  let opponentDom;
+
+
   let gameInProgress = false;
 
   joinButton.addEventListener("click", joinGame);
 
+  // Get/set a Player instance by id 
+  const players = {}
 
-  function joinGame() { // handles player assignment and creation
-    const heroInfo = {
-      name: nickName.value.trim() || "Loser",
-      pick: null,
-      wins: 0,
-      losses: 0,
-      ties: 0
-    };
+  // Hold reference to id by player type
+  let heroId;
+  let enemyId;
 
-    joinArea.classList.add("hidden");
-    arena.classList.remove("hidden");
+  //client stats
+  let wins;
+  let losses;
+  let ties;
 
-    playersRef.on("value", snap => {
-      playerCount = snap.numChildren();
-      hasPlayerOne = snap.child("1").exists();
-      // hasPlayerTwo = snap.child("2").exists();
-
-      if (playerCount < 2 && !heroRef) { //game not full and local player unassigned
-        if (!hasPlayerOne) {
-          createPlayer(1);
-        } else {
-          createPlayer(2); //player one already exists, create local as player 2
-        }
-      } 
-    });
-    
-    function createPlayer(num) {
-      // alert(`Welcome player ${num}`);
-      let opponentNum = num === 1 ? 2 : 1;
-      heroRef = playersRef.child(num);
-      heroDom = domRef[num - 1];
-      opponentRef = playersRef.child(opponentNum);
-      opponentDom = domRef[opponentNum - 1];
-      heroRef.onDisconnect().remove(); // if local closes browser, delete player      
-      heroRef.set(heroInfo);
-      updatePlayerInfo();
-      playGame();
+  class Player {
+    constructor(playerNum) {
+      this.id = playerNum,
+      this.localStats = { // maintains local 
+        name: '',
+        pick: null
+      }
+    }
+  
+    get domRoot() {
+      let selector = this.id === 1 ? 'player-one-area' : 'player-two-area';
+      return document.getElementById(selector);
     }
 
-    function updatePlayerInfo() {
-      heroDom.querySelector(".player-area__message").textContent = "";
-      heroDom.querySelector(".player-area__name").textContent = heroInfo.name;
+    ref() {
+      return playersRef.child(`/${this.id}`);
+    }
+
+    updateFirebase() {
+      const playerRef = this.ref();
+      const stats = this.localStats;
+      playerRef.set(stats);
+    }
+  }
+
+  /**
+   * joinGame will only be "kicked off" once for the local player, the change listener is helpful for a waiting player
+   */
+  function joinGame() {
+    
+    playersRef.on("value", snap => {
+      playerCount = snap.numChildren();
+      playerOneTaken = snap.child('1').exists();
+      const gameNotFull = playerCount < 2;
+      const noHeroExists = !heroId;
+
+      if (gameNotFull && noHeroExists) {
+        if (playerOneTaken) {
+          heroId = 2;
+          enemyId = 1;
+        } else {
+          heroId = 1;
+          enemyId = 2;
+        }
+        createHero(heroId);
+        watchEnemy(enemyId);
+        showArena();
+      } // add some sort of waiting logic here
+    });
+
+    function showArena() {
+      joinArea.classList.add('hidden');
+      arena.classList.remove('hidden');
+    }
+
+    function watchEnemy(playerNum) {
+      playersRef.child(`/${playerNum}`).on('value', snap => {
+        console.log('enemy:', snap.val());
+      });
+    }
+
+
+    function createHero(heroId) {
+      const nickname = nickNameInput.value.trim();
+      const hero = new Player(heroId);
+      hero.localStats.name = nickname;
+      hero.ref().onDisconnect().remove(); // if local closes browser, delete player
+      players[heroId] = hero;
+      hero.updateFirebase();
+      // updatePlayerInfo();
+      // playGame();
+    }
+
+    function updatePlayerInfo(playerDom, message) {
+      playerDom.querySelector(".player-area__message").textContent = message;
+      playerDom.querySelector(".player-area__name").textContent = heroInfo.name;
     }
 
     function playGame() {
       playersRef.on("value", snap => { // show hide game controls based on entering and leaving
         if (playerCount === 2 && !gameInProgress) { // new opponent is joining or an opponent is already here
           gameInProgress = true;
-          heroDom.querySelector(".player-area__choices").classList.remove("hidden");
           // show controls for current player
+          heroDom.querySelector(".player-area__choices").classList.remove("hidden");
+
           // add opponent name
           // show picking message for opponent
         } else if (playerCount === 1) { // opponent has left the game
@@ -97,6 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // clear opponent name
         }
       });
+
       choicesArea.forEach( el => {
         el.addEventListener("click", e => {
           if (e.target.matches(".player-area__button")) {
